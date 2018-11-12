@@ -77,6 +77,8 @@ module.exports = {
           'https://js.intercomcdn.com',
         ],
         'frame-src': [
+          'https://like.co',
+          'https://rinkeby.like.co',
           'https://www.google.com/',
           'https://recaptcha.net',
           'https://www.recaptcha.net',

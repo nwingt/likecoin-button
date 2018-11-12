@@ -10,6 +10,12 @@
     ]"
   >
 
+    <iframe
+      v-if="!hasChecked3rdPartyCookieSupport"
+      :src="`https://${LIKE_CO_HOSTNAME}/cookie`"
+      style="display: none"
+    />
+
     <transition
       name="likecoin-embed__badge-flip-"
       mode="out-in"
@@ -196,6 +202,9 @@ export default {
       likeSent: 0,
       totalLike: 0,
       shouldShowBackside: false,
+
+      hasChecked3rdPartyCookieSupport: false,
+      is3rdPartyCookieSupport: false,
     };
   },
   computed: {
@@ -234,17 +243,33 @@ export default {
       }
     },
     onClickLoginButton() {
-      window.open(
-        `https://${LIKE_CO_HOSTNAME}/in/register`,
-        'signin',
-        'width=540,height=600,menubar=no,location=no,resizable=yes,scrollbars=yes,status=yes',
-      );
+      if (this.hasChecked3rdPartyCookieSupport && this.is3rdPartyCookieSupport) {
+        // Case 1: User has not log in and 3rd party cookie is not blocked
+        window.open(
+          `https://${LIKE_CO_HOSTNAME}/in/register`,
+          'signin',
+          'width=540,height=600,menubar=no,location=no,resizable=yes,scrollbars=yes,status=yes',
+        );
+      } else {
+        // Case 2: User has not log in and 3rd party cookie is blocked
+        const { id } = this.$route.params;
+        window.open(
+          `https://${LIKE_CO_HOSTNAME}/in/like/${id}/?referrer=${encodeURIComponent(this.referrer)}`,
+          'like',
+          'menubar=no,location=no,width=576,height=768',
+        );
+      }
     },
     onClickLike() {
-      if (!this.isSuperLike) {
-        this.likeCount += 1;
+      if (this.isLoggedIn) {
+        // Case 3: User has logged in
+        if (!this.isSuperLike) {
+          this.likeCount += 1;
+        }
+        debouncedOnClick(this);
+      } else {
+        this.onClickLoginButton();
       }
-      debouncedOnClick(this);
     },
     onClickLikeStats() {
       const { id } = this.$route.params;
@@ -271,6 +296,10 @@ export default {
             this.updateUser();
             break;
 
+          case 'COOKIE_CHECK':
+            this.hasChecked3rdPartyCookieSupport = true;
+            this.is3rdPartyCookieSupport = data.payload;
+            break;
           default:
         }
       }

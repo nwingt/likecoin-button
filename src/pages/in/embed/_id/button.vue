@@ -1,9 +1,29 @@
 <template lang="pug">
+  mixin LikeButton
+    LikeButton(
+      ref="likeButton"
+      :like-count="likeCount"
+      :total-like="totalLike"
+      :is-togglable="false"
+      :is-max="isMaxLike"
+      :is-show-max="isFlipped"
+      :href="popupLikeURL"
+      @like="onClickLike"
+      @click-stats="onClickLikeStats"
+    )
+
   div(:class="rootClass")
 
     //- BEGIN - Version 2
     template(v-if="version === 2")
-      | Test
+      .likecoin-embed__left-side
+        .likecoin-embed__cta-badge(
+          :key="v2State"
+        )
+          | {{ v2CTABadgeText }}
+
+      .likecoin-embed__right-side
+        +LikeButton
     //- END - Version 2
 
     //- BEGIN - Version 1
@@ -100,17 +120,7 @@
                 .button-content-wrapper
                   .button-content {{ $t('Embed.label.registerNow') }}
 
-      LikeButton(
-        ref="likeButton"
-        :like-count="likeCount"
-        :total-like="totalLike"
-        :is-togglable="false"
-        :is-max="isMaxLike"
-        :is-show-max="isFlipped"
-        :href="popupLikeURL"
-        @like="onClickLike"
-        @click-stats="onClickLikeStats"
-      )
+      +LikeButton
 
       footer
         SocialMediaConnect(
@@ -146,7 +156,7 @@ export default {
     };
   },
   computed: {
-    version: () => 1,
+    version: () => 2,
     isMobile() {
       return checkIsMobileClient();
     },
@@ -157,7 +167,7 @@ export default {
       return [
         'likecoin-embed',
         'likecoin-embed--button',
-        `likecoin-emded--button-v${this.version}`,
+        `likecoin-embed--button-v${this.version}`,
         `likecoin-embed--logged-${this.isLoggedIn ? 'in' : 'out'}`,
         {
           'likecoin-embed--flipped': this.isFlipped,
@@ -188,6 +198,18 @@ export default {
         return this.$t('Embed.back.civicLiker.paid.button');
       }
       return this.$t('Embed.back.civicLiker.button');
+    },
+    v2State() {
+      return 'login';
+    },
+    v2CTABadgeText() {
+      switch (this.v2State) {
+        case 'login':
+          return '讀者登入按讚作者獲得收入';
+
+        default:
+          return '';
+      }
     },
   },
   methods: {
@@ -558,6 +580,12 @@ $close-btn-width: 56;
 
       opacity: 0;
     }
+  }
+}
+
+.likecoin-embed--button-v2.likecoin-embed {
+  .likecoin-embed__cta-badge {
+    font-size: 0.045rem;
   }
 }
 </style>
